@@ -31,7 +31,7 @@ int main()
 		data.push_back(i);
 
 	sum(accum, N, data);
-	printf("sum is %d\n", accum);
+	cout << "sum is " << accum << "\n" << endl;
 
 	return 0;
 
