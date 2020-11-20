@@ -1,0 +1,162 @@
+#include<iostream>
+#include<time.h>
+#include<limits.h>
+#include<vector>
+#include<stdlib.h>
+using namespace std;
+
+#define V 10
+
+//define the class GRAPH
+class GRAPH
+{
+public:
+	//create the graph
+
+	double** MonteCarlocreate_graph(double density, double wl, double wh)
+	{
+		double** graph = new double* [V];
+		double probability;
+		for (int v = 0; v < V; v++)
+			graph[v] = new double[V];
+
+		srand((unsigned)time(NULL));
+		for (int i = 0; i < V; i++)
+		{
+			for (int j = 0; j < V; j++)
+			{
+				probability = static_cast<double>(rand()) / RAND_MAX;
+				//if probability value satisfies the density condition
+				//then we add a randomly chosen weight to the graph
+				//the weight shall vary from wl to wh
+
+				if (probability <= density)
+				{
+					double weight = wl + (wh - wl) * (static_cast<double>(rand())/RAND_MAX);
+					graph[i][j] = weight;
+				}
+				else
+				{
+					graph[i][j] = 0.0;
+				}
+				graph[j][j] = 0.0;
+			}
+		}
+		return graph;
+	}
+
+	//print the graph that we have created
+	void print_graph(double** graph)
+	{
+		for (int i = 0; i < V; i++)
+		{
+			for (int j = 0; j < V; j++)
+			{
+				cout << graph[i][j] << "\t";
+			}
+			cout << "\n";
+		}
+	}
+
+	//Get min distance point which is not included in the shortest path
+	int find_min_index(bool state[], double distance[])
+	{
+		int min_index;
+		double min = INT_MAX;
+		for (int u = 0; u < V; u++)
+			if (state[u]==false && distance[u] <= min)
+			{
+				min = distance[u];
+				min_index = u;
+			}
+		return min_index;
+	}
+
+	void update(int u, bool state[], double distance[], double** graph)
+	{
+		for (int v = 0; v < V; v++)
+		{
+			if (graph[u][v] && state[v]==false && distance[u] + graph[u][v] < distance[v] && distance[u] != INT_MAX)
+			{
+				distance[v] = distance[u] + graph[u][v];
+			}
+		}
+	}
+
+	void print_distance(double distance[], int src)
+	{
+		cout << "\nThe minimun distances from source " << src << " are respectively:\n" << endl;
+		for (int i = 0; i < V; i++)
+		{
+			cout << i << " : " << distance[i] << "\n" << endl;
+		}
+	}
+
+	double mean(double *distance)
+	{
+		double total_distance = 0.0;
+		for (int i = 0; i < V; i++)
+		{
+			if (distance[i] <= 10.0 * V)
+			{
+				total_distance += distance[i];
+			}
+		}
+		return total_distance / V;
+	}
+
+	double* dijkstra(double** graph, int src)
+	{
+		//path array store the shortest path
+		int path[V] = { 0 };
+
+		//Create distance array
+		static double distance[V];
+		//Create state array:if i point is in shortest path, state[i]=true
+		bool state[V];
+		//Initialize distance and state
+		for (int i = 0; i < V; i++)
+		{
+			distance[i] = INT_MAX, state[i] = false;
+		}
+		distance[src] = 0.0;
+
+		//update the distance array
+		for (int count=0; count < V; count++)
+		{
+			int u = find_min_index(state, distance);
+			state[u] = true;
+			update(u, state, distance, graph);
+			path[count] = u;
+		}
+
+		//print distance array
+		print_distance(distance, src);
+
+		//print path from source to end
+		cout << "\nThe path is :" << endl;
+		for (int j = 0; j < V; j++)
+		{
+			cout << "->" << path[j];
+		}
+		cout <<"\n"<< endl;
+		return distance;
+	}
+};
+
+
+
+
+int main(void)
+{
+	double** graph;
+	int src = 3;
+	double *distance;
+	double density = 0.5, wl = 1.0, wh = 10.0;
+	GRAPH G;
+	graph = G.MonteCarlocreate_graph(density, wl, wh);
+	cout << "print the random graph:\n" << endl;
+	G.print_graph(graph);
+	distance = G.dijkstra(graph, src);
+	cout << "\nAverage distance is : " << G.mean(distance) << endl;
+}
